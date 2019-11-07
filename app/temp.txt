@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS `gookbab` (
+  id int(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  place varchar(255) NOT NULL,
+  low int(11) NOT NULL,
+  high int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
