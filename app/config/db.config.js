@@ -4,7 +4,7 @@ module.exports = {
   PASSWORD: "8086d028",
   DB: "heroku_858b2c7635f5aef"
 };
-
+// Local Data
 // module.exports = {
 //   HOST: "localhost",
 //   USER: "root",
