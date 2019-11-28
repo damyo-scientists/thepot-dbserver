@@ -1,4 +1,4 @@
-const sql = require("./db.js");
+const knex = require("./db.js");
 
 const GookbabPlace = function(place) {
   this.id = place.id;
@@ -16,94 +16,103 @@ function printError(err, result) {
 }
 
 GookbabPlace.create = (newPlace, result) => {
-  sql.query("INSERT INTO place SET ?", newPlace, (err, res) => {
-    printError(err, result);
-
-    console.log("Created gookbab place: ", { id: res.insertId, ...newPlace });
-    result(null, { id: res.insertId, ...newPlace });
-  });
+  knex("place")
+    .insert(newPlace)
+    .then(res => {
+      console.log("Created gookbab place: ", { id: res.insertID, ...newPlace });
+      result(null, { id: res.insertID, ...newPlace });
+    })
+    .catch(err => {
+      printError(err, result);
+    });
 };
 
 GookbabPlace.findById = (gookbabPlaceId, result) => {
-  sql.query(`SELECT * FROM place where id = ${gookbabPlaceId}`, (err, res) => {
-    printError(err, result);
-
-    if (res.length) {
-      console.log("found place: ", res[0]);
-      result(null, res[0]);
-      return;
-    }
-
-    result({ kind: "not_found" }, null);
-  });
+  knex
+    .from("place")
+    .where({ id: gookbabPlaceId })
+    .then(res => {
+      if (res.length) {
+        console.log("found place: ", res[0]);
+        result(null, res[0]);
+        return;
+      }
+      result({ kind: "not_found" }, null);
+    })
+    .catch(err => {
+      printError(err, Result);
+    });
 };
 
 GookbabPlace.getAll = result => {
-  sql.query("SELECT * FROM place", (err, res) => {
-    if (err) {
+  knex
+    .from("place")
+    .select()
+    .then(res => {
+      console.log("places: ", res);
+      result(null, res);
+    })
+    .catch(err => {
       console.log("error: ", err);
       result(null, err);
       return;
-    }
-
-    console.log("places: ", res);
-    result(null, res);
-  });
+    });
 };
 
 GookbabPlace.updateById = (id, place, result) => {
-  sql.query(
-    "UPDATE place SET name = ?, lowprice = ?, highprice = ? WHERE id = ?",
-    [place.name, place.lowprice, place.highprice, id],
-    (err, res) => {
-      if (err) {
-        console.log("error: ", err);
-        result(null, err);
-        return;
-      }
-
+  knex("place")
+    .where("id", id)
+    .update({
+      name: place.name,
+      lowprice: place.lowprice,
+      highprice: place.highprice
+    })
+    .then(res => {
       if (res.affectedRows == 0) {
-        // not found Customer with the id
-        result({ kind: "not_found" }, null);
+        result({ kind: "not found" }, null);
         return;
       }
-
-      console.log("updated place : ", { id: id, ...place });
+      console.log("updated place: ", { id: id, ...place });
       result(null, { id: id, ...place });
-    }
-  );
+    })
+    .catch(err => {
+      console.log("error: ", err);
+      result(null, err);
+      return;
+    });
 };
 
 GookbabPlace.remove = (id, result) => {
-  sql.query("DELETE FROM place WHERE id = ?", id, (err, res) => {
-    if (err) {
+  knex("place")
+    .where("id", id)
+    .del()
+    .then(res => {
+      if (res.affectedRows == 0) {
+        result({ kind: "not_found" }, null);
+        return;
+      }
+      console.log("deleted place with id: ", id);
+      result(null, res);
+    })
+    .catch(err => {
       console.log("error: ", err);
       result(null, err);
       return;
-    }
-
-    if (res.affectedRows == 0) {
-      // not found Customer with the id
-      result({ kind: "not_found" }, null);
-      return;
-    }
-
-    console.log("deleted place with id: ", id);
-    result(null, res);
-  });
+    });
 };
 
 GookbabPlace.removeAll = result => {
-  sql.query("DELETE FROM place", (err, res) => {
-    if (err) {
+  knex("place")
+    .del()
+    .then(res => {
+      console.log(`deleted ${res.affectedRows} places`);
+      result(null, res);
+    })
+    .catch(err => {
       console.log("error: ", err);
       result(null, err);
       return;
-    }
-
-    console.log(`deleted ${res.affectedRows} places`);
-    result(null, res);
-  });
+    });
 };
 
 module.exports = GookbabPlace;
